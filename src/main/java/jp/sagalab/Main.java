@@ -1,5 +1,8 @@
 package jp.sagalab;
 
+import jp.sagalab.graph.PointsGraph;
+import jp.sagalab.jftk.Point;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -22,4 +25,15 @@ public class Main {
         frame.pack();
         frame.setVisible(true);
     }
+
+    public static void createPointsGraph(Point[] _points, double[] _knots) {
+        PointsGraph pointsGraph = PointsGraph.create(_points, _knots);
+        POINTS_GRAPH_FRAME.getContentPane().removeAll();
+        POINTS_GRAPH_FRAME.getContentPane().add(pointsGraph);
+        POINTS_GRAPH_FRAME.pack();
+        POINTS_GRAPH_FRAME.setVisible(true);
+    }
+
+    /** PointsGraphを保持するためのJFrame */
+    private static final JFrame POINTS_GRAPH_FRAME = new JFrame();
 }
