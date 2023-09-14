@@ -2,7 +2,10 @@ package jp.sagalab;
 
 //import jp.sagalab.b3semi.graph.PointsGraph;
 
+import jp.sagalab.jftk.Matrix;
 import jp.sagalab.jftk.Point;
+import jp.sagalab.jftk.curve.Range;
+import jp.sagalab.jftk.curve.SplineCurve;
 
 import java.util.Arrays;
 

@@ -4,6 +4,7 @@ import jp.sagalab.jflib.FSCITask;
 import jp.sagalab.jflib.parameter.FSCIParameter;
 import jp.sagalab.jftk.Point;
 import jp.sagalab.jftk.curve.ParametricEvaluable;
+import jp.sagalab.jftk.curve.Range;
 import jp.sagalab.jftk.curve.SplineCurve;
 import jp.sagalab.jftk.fragmentation.Fragment;
 import jp.sagalab.jftk.fragmentation.IdentificationFragment;
@@ -140,8 +141,9 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         // スプライン補間を行う
         // SplineCurveInterpolator.interpolateの引数は(点列(Point[]型), 次数(int型), 節点間隔(double型))にする.
-        jp.sagalab.SplineCurve splineCurve = SplineCurveInterpolator.interpolate(points2, degree, knot_2);
+        SplineCurve splineCurve = SplineCurveInterpolator.interpolate(points2, degree, knot_2);
 
+        m_sc = splineCurve;
 
         // スプライン曲線の評価点を求める↓
         double Start = splineCurve.range().start();
@@ -270,6 +272,13 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
                     (int) (2 * m_end.fuzziness()),
                     (int) (2 * m_end.fuzziness()));
         }
+
+        //splinecurve(m_sc)の描画（オレンジ）
+        _g.setColor(Color.orange);
+        if(m_sc != null){
+            drawSplineCurve(_g, m_sc);
+        }
+
     }
 
     @Override
@@ -412,6 +421,9 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
     private SplineCurve m_origin = null;
     /** フラグメンテーション後のファジィスプライン曲線 */
     private SplineCurve m_splineCurve = null;
+
+    private SplineCurve m_sc = null;
+
     /** 前の点 */
     private Point m_begin = null;
     /** 後ろの点 */

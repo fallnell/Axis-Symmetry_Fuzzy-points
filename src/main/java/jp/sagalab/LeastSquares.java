@@ -1,5 +1,7 @@
 package jp.sagalab;
 
+import jp.sagalab.jftk.Matrix;
+
 /**
  * 最小二乗法を表すクラスです。
  *
