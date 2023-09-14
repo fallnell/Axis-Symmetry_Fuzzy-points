@@ -140,7 +140,7 @@ public final class SplineCurveInterpolator {
         Range range = Range.create(_points[0].time(), _points[_points.length - 1].time());
 
         // PointsGraphの生成
-        Main.createPointsGraph(_points, _knots);
+        MyPanel.createPointsGraph(_points, _knots);
 
         // 重み行列の生成
         Matrix wmat = createWeightMatrix(_points, _degree, _knots);

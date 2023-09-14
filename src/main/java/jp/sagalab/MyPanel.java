@@ -1,5 +1,6 @@
 package jp.sagalab;
 
+import jp.sagalab.graph.PointsGraph;
 import jp.sagalab.jflib.FSCITask;
 import jp.sagalab.jflib.parameter.FSCIParameter;
 import jp.sagalab.jftk.Point;
@@ -33,33 +34,21 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
 //        System.out.println(m_splineCurve);        //cp:(x, y, z, t, f), knots, degree, range[s,e)
 
-        // ↓↓↓ここに何か処理を入れよう↓↓↓↓
+        // ↓↓↓ここに何か処理を入れよう↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
-
-        int num = max((int) ceil(m_splineCurve.range().length() / 1e-2), 2);       //1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
-        Point[] points = m_splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);    //points: スプライン曲線を等時間間隔でnum点で評価した点列
+        //1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
+        int num = max((int) ceil(m_splineCurve.range().length() / 1e-2), 2);
+        //points: スプライン曲線を等時間間隔でnum点で評価した点列
+        Point[] points = m_splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
+//        //pointsの表示, 入力点列(x, y, z, 時間, f)
 //        System.out.println("points(x, y, z, 時間, f),   " + "長さ: " + points.length);
 //        for(int i=0; i<=points.length-1; i++){
-//            System.out.println(points[i]);              //pointsの表示, 入力点列(x, y, z, 時間, f)
+//            System.out.println(points[i]);
 //        }
 
-        //Lに距離を足す。Lは全長
-        double L = 0;
-        for (int i=0; i<points.length-1; i++){
-            L += distance(points[i].x(), points[i+1].x(), points[i].y(), points[i+1].y());
-        }
-
-        // 弧長パラメータを0から始まるようにシフトしておく.
-        Range lRange = Range.create(0.0, L);
-        // 点列の時系列を正規化する.
-        List<Point> normalizedPoints = normalizePoints(lRange, points);
-        //shiftedPointsに時刻を入れて表示する
-        List<Point> shiftedPoints = shiftPointsTimeZero(points);
-//    for(int i=0; i<shiftedPoints.size(); i++){
-//      System.out.println(shiftedPoints.get(i));    //表示
-//    }
 
         //disListに距離入れてく（points）
+        //disListの最後は全長disList.get(points.length-1)
         List<Double> disList = new ArrayList<>();
         double dis = 0.0;
 //        System.out.println("disList");        //表示
@@ -75,28 +64,22 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         }
 
 
-        //m_beginから入力の1点目の距離Ls, m_endから入力点の最後の点の距離Le
-        double Ls = distance(points[0].x(), m_begin.x(), points[0].y(), m_begin.y());
-        double Le = distance(points[points.length-1].x(), m_end.x(), points[points.length-1].y(), m_end.y());
-//        System.out.println("Ls: " + Ls);         //Lsの表示
-//        System.out.println("L+Le: " + (L+Le));       //L+Leの表示
+        // 弧長パラメータを0から始まるようにシフトしておく.
+        Range lRange = Range.create(0.0, disList.get(points.length-1));
+        // 点列の時系列を正規化する.
+        List<Point> normalizedPoints = normalizePoints(lRange, points);
+//        //shiftedPointsに時刻を入れて表示する
+//        List<Point> shiftedPoints = shiftPointsTimeZero(points);
+//        for(int i=0; i<shiftedPoints.size(); i++){
+//            System.out.println(shiftedPoints.get(i));
+//        }
+
 
         //disListのi番目のx, y, 距離をnormalizedPointsにsetする
         //normalizedPointsの中身は(x, y, 距離)
         for (int i=0; i<points.length-1; i++){
             normalizedPoints.set(i, Point.createXYT(normalizedPoints.get(i).x(), normalizedPoints.get(i).y(), disList.get(i)));
         }
-        //normalizedPointsに点S(s.x, s.y, -Ls), 点E(e.x, e.y, L+Le-0.000001)を加える
-        normalizedPoints.add(0, Point.createXYT(m_begin.x(), m_end.y(), -Ls));
-        normalizedPoints.add(Point.createXYT(m_begin.x(), m_end.y(), L+Le-0.000001));
-
-        // リストを配列に変換する.
-        Point[] points2 = normalizedPoints.toArray(new Point[0]);
-
-//    System.out.println("points2(x, y, z, 距離, f),   " + "長さ: " + points2.length);
-//    for(int i=0; i<points.length; i++){
-//      System.out.println(points2[i]);   //表示
-//    }
 
         // 次数
         int degree = 3;
@@ -104,8 +87,14 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //kotyoListに距離を入れる
         //[-Ls, 0, 0.1の距離, 0.2の距離, ... , L+Le]
         List<Double> kotyoList = new ArrayList<>();
-        kotyoList.add(-Ls);
-        for(double t=points[0].time(); t<=points[points.length-1].time(); t+=0.01){
+        //m_beginがnullじゃなかったら-Lsをいれる。nullなら何もなし。
+        if(m_begin != null) {
+            //m_beginから入力の1点目の距離Ls
+            double Ls = distance(points[0].x(), m_begin.x(), points[0].y(), m_begin.y());
+            normalizedPoints.add(0, Point.createXYT(m_begin.x(), m_begin.y(), -Ls));
+            kotyoList.add(-Ls);
+        }
+        for(double t=points[0].time(); t<=points[points.length-1].time(); t+=0.1){
             for(int i=0; i<=points.length-1; i++){
                 if(points[i].time() > t){
                     double u = t - points[i-1].time();           //比
@@ -118,8 +107,24 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
                 }
             }
         }
-        //kotyoList.add(L);
-        kotyoList.add(L+Le);
+        //m_endがnullじゃなかったらdisList.get(points.length-1) + Leをいれる。nullなら何もなし。
+        if(m_end != null) {
+            //m_endから入力点の最後の点の距離Le
+            double Le = distance(points[points.length-1].x(), m_end.x(), points[points.length-1].y(), m_end.y());
+            normalizedPoints.add(Point.createXYT(m_end.x(), m_end.y(), disList.get(points.length-1)+Le-0.000001));
+            kotyoList.add(disList.get(points.length-1) + Le);
+        }
+        else {
+            kotyoList.add(disList.get(points.length-1));
+        }
+
+        // リストを配列に変換する.
+        Point[] points2 = normalizedPoints.toArray(new Point[0]);
+//        //points2の表示
+//        System.out.println("points2(x, y, z, 距離, f),   " + "長さ: " + points2.length);
+//        for(int i=0; i<points.length; i++){
+//            System.out.println(points2[i]);
+//        }
 
 
         //knot_2はkotyoListと付加節点
@@ -133,43 +138,17 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         knot_2[kotyoList.size()+2] = kotyoList.get(kotyoList.size()-1);
         knot_2[kotyoList.size()+3] = kotyoList.get(kotyoList.size()-1);
 
-//        System.out.println("knot_2:");
+//        //knot_2の表示
+//        System.out.println("knot_2:    " + "長さ: " + knot_2.length);
 //        for(int i=0; i<knot_2.length; i++){
-//            System.out.println(knot_2[i]);          //knot_2の表示
+//            System.out.println(knot_2[i]);
 //        }
-
 
         // スプライン補間を行う
         // SplineCurveInterpolator.interpolateの引数は(点列(Point[]型), 次数(int型), 節点間隔(double型))にする.
         SplineCurve splineCurve = SplineCurveInterpolator.interpolate(points2, degree, knot_2);
 
         m_sc = splineCurve;
-
-        // スプライン曲線の評価点を求める↓
-        double Start = splineCurve.range().start();
-        double End = splineCurve.range().end();
-        List<Point> evaluateList = new ArrayList<>();
-
-
-        for (double t = Start; t < End; t += 0.01) {
-            evaluateList.add(splineCurve.evaluate(t));
-        }
-
-
-//        // SplineCurveの描画
-//        for (int i = 1; i < evaluateList.size(); i++) {
-//            drawLine(evaluateList.get(i-1), evaluateList.get(i), Color.RED);              //評価点（赤）
-//        }
-//
-//        Point[] controlList = splineCurve.controlPoints();
-//        for (int i = 0; i< controlList.length ;i++){
-//            drawPoint(controlList[i].x(),controlList[i].y(),3,Color.blue);         //制御点（青）
-//        }
-//        for (int i = 1; i <= controlList.length - 1; i++) {
-//            drawLine(controlList[i-1],controlList[i] , Color.blue);                       //制御点をつなぐ（青線）
-//        }
-
-
     }
 
 
@@ -195,53 +174,22 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
      * @param _range 正規化後の時刻パラメータの範囲
      */
     public List<Point> normalizePoints(Range _range, Point[] points) {
-        double startTime = m_points.get(0).time();
-        double timeLength = m_points.get(m_points.size() - 1).time() - startTime;
+        double startTime = points[0].time();
+        double timeLength = points[points.length-1].time() - startTime;
         double rangeLength = _range.length();
         List<Point> points3 = new ArrayList<>();
-        for (Point point : m_points) {
+        for (Point point : points) {
             points3.add(Point.createXYT(point.x(), point.y()
                     , _range.start() + (point.time() - startTime) * (rangeLength / timeLength)));
         }
-
         return points3;
     }
-
-//    /**
-//     * 点を描画する.
-//     *
-//     * @param _x      x座標
-//     * @param _y      y座標
-//     * @param _radius 点の半径
-//     * @param _color  点の色
-//     */
-//    public void drawPoint(double _x, double _y, double _radius, Color _color) {
-//        Graphics2D g = (Graphics2D) m_canvas.getGraphics();
-//        g.setColor(_color);
-//
-//        Ellipse2D.Double oval = new Ellipse2D.Double(_x - _radius, _y - _radius, _radius * 2, _radius * 2);
-//        g.draw(oval);
-//    }
-//
-//    /**
-//     * 線を描画する.
-//     *
-//     * @param _p1    始点
-//     * @param _p2    終点
-//     * @param _color 線の色
-//     */
-//    public void drawLine(Point _p1, Point _p2, Color _color) {
-//        Graphics2D g = (Graphics2D)m_canvas.getGraphics();
-//        g.setColor(_color);
-//
-//        Line2D.Double line = new Line2D.Double(_p1.x(), _p1.y(), _p2.x(), _p2.y());
-//        g.draw(line);
-//    }
 
 
     @Override
     public void paint(Graphics _g) {
         super.paint(_g);
+        Graphics2D g = (Graphics2D)_g;
 
         // 入力点列を表示
         for (Point p : m_points) {
@@ -251,12 +199,14 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         // スプライン曲線を表示（緑）
         _g.setColor(Color.GREEN);
         if (m_splineCurve != null) {
+            g.setStroke(new BasicStroke(5));
             drawSplineCurve(_g, m_splineCurve);
         }
 
         // 前の点を表示（赤)
         _g.setColor(Color.RED);
         if (m_begin != null) {
+            g.setStroke(new BasicStroke(1));
             _g.fillOval((int) m_begin.x() - 4, (int) m_begin.y() - 4, 8, 8);
             _g.drawOval((int) (m_begin.x() - m_begin.fuzziness()),
                     (int) (m_begin.y() - m_begin.fuzziness()),
@@ -266,6 +216,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         // 後ろの点を表示（青）
         _g.setColor(Color.BLUE);
         if (m_end != null) {
+            g.setStroke(new BasicStroke(1));
             _g.fillOval((int) m_end.x() - 4, (int) m_end.y() - 4, 8, 8);
             _g.drawOval((int) (m_end.x() - m_end.fuzziness()),
                     (int) (m_end.y() - m_end.fuzziness()),
@@ -276,15 +227,29 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //splinecurve(m_sc)の描画（オレンジ）
         _g.setColor(Color.orange);
         if(m_sc != null){
+            g.setStroke(new BasicStroke(2));
             drawSplineCurve(_g, m_sc);
         }
 
+    }
+
+    //点列と節点列の表示
+    public static void createPointsGraph(Point[] _points, double[] knot_2) {
+        PointsGraph pointsGraph = PointsGraph.create(_points, knot_2);
+        POINTS_GRAPH_FRAME.getContentPane().removeAll();
+        POINTS_GRAPH_FRAME.getContentPane().add(pointsGraph);
+        POINTS_GRAPH_FRAME.pack();
+        POINTS_GRAPH_FRAME.setVisible(true);
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         m_points.clear();
         m_points.add(Point.createXYT(e.getX(), e.getY(), System.currentTimeMillis() * 1e-3));
+        m_splineCurve = null;
+        m_begin = null;
+        m_end = null;
+        m_sc = null;
         repaint();
     }
 
@@ -303,18 +268,20 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
     public void drawSplineCurve(Graphics _g, SplineCurve splineCurve) {
         if (splineCurve != null) {
-            // 1秒間に100点程度表示する
-            int num = max((int) ceil(splineCurve.range().length() / 1e-2), 2);       //1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
-            Point[] points = splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);    //points: スプライン曲線を等時間間隔でnum点で評価した点列
+            // 1秒間に100点程度表示する。1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
+            int num = max((int) ceil(splineCurve.range().length() / 1e-2), 2);
+            //points: スプライン曲線を等時間間隔でnum点で評価した点列
+            Point[] points = splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
+//            //pointsの表示, 入力点列(x, y, z, 時間, f)
 //            System.out.println("points: ");
 //            for(int i=0; i<=points.length-1; i++){
-//                System.out.println(points[i]);              //pointsの表示, 入力点列(x, y, z, 時間, f)
+//                System.out.println(points[i]);
 //            }
 
-            // ファジネスを表示
-            for (Point p : points) {
-                _g.drawOval((int) (p.x() - p.fuzziness()), (int) (p.y() - p.fuzziness()), (int) (2 * p.fuzziness()), (int) (2 * p.fuzziness()));
-            }
+//            // ファジネスを表示
+//            for (Point p : points) {
+//                _g.drawOval((int) (p.x() - p.fuzziness()), (int) (p.y() - p.fuzziness()), (int) (2 * p.fuzziness()), (int) (2 * p.fuzziness()));
+//            }
 
             // 稜線を表示
             for (int i = 1; i < points.length; ++i) {
@@ -352,7 +319,9 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             if (index < fragments.length - 1 && fragments[index + 1] instanceof PartitionFragment) {
                 end = ((PartitionFragment) fragments[index + 1]).body();
             }
-            execute(fragments[index].curve(), begin, end);
+            if(index >= 0) {
+                execute(fragments[index].curve(), begin, end);
+            }
         }
     }
 
@@ -431,4 +400,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
     /** キャンバスを表す変数 */
     private final Canvas m_canvas = new Canvas();
+
+    /** PointsGraphを保持するためのJFrame */
+    private static final JFrame POINTS_GRAPH_FRAME = new JFrame();
 }
