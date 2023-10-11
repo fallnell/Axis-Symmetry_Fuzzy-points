@@ -16,72 +16,72 @@ import java.util.Arrays;
  */
 public final class SplineCurveInterpolator {
 
-//    /**
-//     * 指定された点列に対してスプライン曲線補間を行います。
-//     *
-//     * @param _points       点列
-//     * @param _degree       次数
-//     * @param _knotInterval 節点間隔
-//     * @return スプライン曲線
-//     * @throws IllegalArgumentException 次数が0以下の場合
-//     * @throws IllegalArgumentException 節点間隔が0以下の場合
-//     * @throws IllegalArgumentException 点列がnullの場合
-//     * @throws IllegalArgumentException 点列にnullが含まれる場合
-//     * @throws IllegalArgumentException 点列の要素数が1以下の場合
-//     * @throws IllegalArgumentException 点列中の時刻がNaN、もしくは無限大の場合
-//     * @throws IllegalArgumentException 点列中に時間的に逆行している箇所があった場合
-//     */
-//    public static SplineCurve interpolate(Point[] _points, int _degree, double _knotInterval) {
-//        // 次数のチェック
-//        if (_degree < 1) {
-//            throw new IllegalArgumentException(" degree is must be greater than 0 ");
-//        }
-//        // 節点間隔チェック
-//        if (_knotInterval <= 0.0) {
-//            throw new IllegalArgumentException(" knot's interval is must be greater than 0 ");
-//        }
-//        if (_points == null) {
-//            throw new IllegalArgumentException("_points is null.");
-//        }
-//        // 入力点列にnullが混入していないかチェック
-//        if (Arrays.asList(_points).contains(null)) {
-//            throw new IllegalArgumentException(" points include null ");
-//        }
-//        // 点列の要素数チェック
-//        if (_points.length < 2) {
-//            throw new IllegalArgumentException(" points's length must be greater than 1 ");
-//        }
-//
-//        // 時系列チェック
-//        double preTime = Double.NEGATIVE_INFINITY;
-//        for (Point p : _points) {
-//            double t = p.time();
-//            if (Double.isNaN(t) || Double.isInfinite(t)) {
-//                throw new IllegalArgumentException("point's time include NaN or infinite");
-//            }
-//            if (t <= preTime) {
-//                throw new IllegalArgumentException("time series is not a positive order");
-//            }
-//        }
-//
-//        Range range = Range.create(_points[0].time(), _points[_points.length - 1].time());
-//
-//        // 節点系列の生成
-//        double[] knots = createKnots(range, _degree, _knotInterval);
-//
-//        // PointsGraphの生成
-//        Main.createPointsGraph(_points, knots);
-//
-//        // 重み行列の生成
-//        Matrix wmat = createWeightMatrix(_points, _degree, knots);
-//        //System.out.println(wmat);
-//
-//        // 制御点列の導出
-//        Point[] controlPoints = calculateControlPoints(wmat, _points);
-//
-//        // スプライン曲線構築
-//        return SplineCurve.create(_degree, controlPoints, knots, range);
-//    }
+    /**
+     * 指定された点列に対してスプライン曲線補間を行います。
+     *
+     * @param _points       点列
+     * @param _degree       次数
+     * @param _knotInterval 節点間隔
+     * @return スプライン曲線
+     * @throws IllegalArgumentException 次数が0以下の場合
+     * @throws IllegalArgumentException 節点間隔が0以下の場合
+     * @throws IllegalArgumentException 点列がnullの場合
+     * @throws IllegalArgumentException 点列にnullが含まれる場合
+     * @throws IllegalArgumentException 点列の要素数が1以下の場合
+     * @throws IllegalArgumentException 点列中の時刻がNaN、もしくは無限大の場合
+     * @throws IllegalArgumentException 点列中に時間的に逆行している箇所があった場合
+     */
+    public static SplineCurve interpolate(Point[] _points, int _degree, double _knotInterval) {
+        // 次数のチェック
+        if (_degree < 1) {
+            throw new IllegalArgumentException(" degree is must be greater than 0 ");
+        }
+        // 節点間隔チェック
+        if (_knotInterval <= 0.0) {
+            throw new IllegalArgumentException(" knot's interval is must be greater than 0 ");
+        }
+        if (_points == null) {
+            throw new IllegalArgumentException("_points is null.");
+        }
+        // 入力点列にnullが混入していないかチェック
+        if (Arrays.asList(_points).contains(null)) {
+            throw new IllegalArgumentException(" points include null ");
+        }
+        // 点列の要素数チェック
+        if (_points.length < 2) {
+            throw new IllegalArgumentException(" points's length must be greater than 1 ");
+        }
+
+        // 時系列チェック
+        double preTime = Double.NEGATIVE_INFINITY;
+        for (Point p : _points) {
+            double t = p.time();
+            if (Double.isNaN(t) || Double.isInfinite(t)) {
+                throw new IllegalArgumentException("point's time include NaN or infinite");
+            }
+            if (t <= preTime) {
+                throw new IllegalArgumentException("time series is not a positive order");
+            }
+        }
+
+        Range range = Range.create(_points[0].time(), _points[_points.length - 1].time());
+
+        // 節点系列の生成
+        double[] knots = createKnots(range, _degree, _knotInterval);
+
+        // PointsGraphの生成
+        MyPanel.createPointsGraph(_points, knots);
+
+        // 重み行列の生成
+        Matrix wmat = createWeightMatrix(_points, _degree, knots);
+        //System.out.println(wmat);
+
+        // 制御点列の導出
+        Point[] controlPoints = calculateControlPoints(wmat, _points);
+
+        // スプライン曲線構築
+        return SplineCurve.create(_degree, controlPoints, knots, range);
+    }
 
     /**
      * 指定された点列に対してスプライン曲線補間を行います。
@@ -140,6 +140,7 @@ public final class SplineCurveInterpolator {
         Range range = Range.create(_points[0].time(), _points[_points.length - 1].time());
 
         // PointsGraphの生成
+        //knot_2のグラフを表示
         MyPanel.createPointsGraph(_points, _knots);
 
         // 重み行列の生成

@@ -32,19 +32,27 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         // 青の点。後ろ側の点（nullの場合がある）
         m_end = end;
 
-//        System.out.println(m_splineCurve);        //cp:(x, y, z, t, f), knots, degree, range[s,e)
+        System.out.println(m_splineCurve);        //cp:(x, y, z, t, f), knots, degree, range[s,e)
+
 
         // ↓↓↓ここに何か処理を入れよう↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+
+        List<Double> sc_knots = new ArrayList<>();
+        for(int i=0; i<m_splineCurve.knots().length; i++){
+            sc_knots.add(m_splineCurve.knots()[i]);
+        }
+        System.out.println(sc_knots);
+        System.out.println("sc_knotsの大きさ" + sc_knots.size());
 
         //1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
         int num = max((int) ceil(m_splineCurve.range().length() / 1e-2), 2);
         //points: スプライン曲線を等時間間隔でnum点で評価した点列
         Point[] points = m_splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
-//        //pointsの表示, 入力点列(x, y, z, 時間, f)
-//        System.out.println("points(x, y, z, 時間, f),   " + "長さ: " + points.length);
-//        for(int i=0; i<=points.length-1; i++){
-//            System.out.println(points[i]);
-//        }
+        //pointsの表示, 入力点列(x, y, z, 時間, f)
+        System.out.println("points(x, y, z, 時間, f),   " + "長さ: " + points.length);
+        for(int i=0; i<=points.length-1; i++){
+            System.out.println(points[i]);
+        }
 
 
         //disListに距離入れてく（points）
@@ -68,11 +76,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         Range lRange = Range.create(0.0, disList.get(points.length-1));
         // 点列の時系列を正規化する.
         List<Point> normalizedPoints = normalizePoints(lRange, points);
-//        //shiftedPointsに時刻を入れて表示する
-//        List<Point> shiftedPoints = shiftPointsTimeZero(points);
-//        for(int i=0; i<shiftedPoints.size(); i++){
-//            System.out.println(shiftedPoints.get(i));
-//        }
 
 
         //disListのi番目のx, y, 距離をnormalizedPointsにsetする
@@ -94,19 +97,36 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             normalizedPoints.add(0, Point.createXYT(m_begin.x(), m_begin.y(), -Ls));
             kotyoList.add(-Ls);
         }
-        for(double t=points[0].time(); t<=points[points.length-1].time(); t+=0.1){
-            for(int i=0; i<=points.length-1; i++){
-                if(points[i].time() > t){
-                    double u = t - points[i-1].time();           //比
-                    double v = points[i].time() - t;             //比
-                    double a = disList.get(i-1);                       //距離
-                    double b = disList.get(i);                         //距離
-                    double d = (v*a + u*b)/(u + v);                    //内分
-                    kotyoList.add(d);
-                    break;
+
+        for(int i=0; i<sc_knots.size(); i++){
+            if(points[0].time() <= sc_knots.get(i) && sc_knots.get(i) <= points[points.length-1].time()){
+                for(int t=1; t<=points.length; t++) {
+                    if(points[t-1].time() <= sc_knots.get(i) &&  sc_knots.get(i)<= points[t].time()) {
+                        double u = sc_knots.get(i) - points[t-1].time();
+                        double v = points[t].time() - sc_knots.get(i);
+                        double a = disList.get(t-1);
+                        double b = disList.get(t);
+                        double d = (v * a + u * b) / (u + v);
+                        kotyoList.add(d);
+                        break;
+                    }
                 }
             }
         }
+
+//        for(double t=points[0].time(); t<=points[points.length-1].time(); t+=0.1){
+//            for(int i=0; i<=points.length-1; i++){
+//                if(points[i].time() > t){
+//                    double u = t - points[i-1].time();           //比
+//                    double v = points[i].time() - t;             //比
+//                    double a = disList.get(i-1);                       //距離
+//                    double b = disList.get(i);                         //距離
+//                    double d = (v*a + u*b)/(u + v);                    //内分
+//                    kotyoList.add(d);
+//                    break;
+//                }
+//            }
+//        }
         //m_endがnullじゃなかったらdisList.get(points.length-1) + Leをいれる。nullなら何もなし。
         if(m_end != null) {
             //m_endから入力点の最後の点の距離Le
@@ -138,11 +158,11 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         knot_2[kotyoList.size()+2] = kotyoList.get(kotyoList.size()-1);
         knot_2[kotyoList.size()+3] = kotyoList.get(kotyoList.size()-1);
 
-//        //knot_2の表示
-//        System.out.println("knot_2:    " + "長さ: " + knot_2.length);
-//        for(int i=0; i<knot_2.length; i++){
-//            System.out.println(knot_2[i]);
-//        }
+        //knot_2の表示
+        System.out.println("knot_2:    " + "長さ: " + knot_2.length);
+        for(int i=0; i<knot_2.length; i++){
+            System.out.println(knot_2[i]);
+        }
 
         // スプライン補間を行う
         // SplineCurveInterpolator.interpolateの引数は(点列(Point[]型), 次数(int型), 節点間隔(double型))にする.
@@ -150,6 +170,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         m_sc = splineCurve;
     }
+
 
 
     //距離計算
@@ -160,12 +181,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         return L;
     }
 
-    /**
-     * 点列の時刻パラメータが0始まりになるように全体をシフトします.
-     */
-    public List<Point> shiftPointsTimeZero(Point[] points) {
-        return normalizePoints(Range.create(0, points[points.length-1].time() - points[0].time()), points);
-    }
 
     /**
      * 点列の時刻パラメータの正規化をします.
@@ -233,7 +248,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
     }
 
-    //点列と節点列の表示
+    //点列と節点列(knot_2)の表示
     public static void createPointsGraph(Point[] _points, double[] knot_2) {
         PointsGraph pointsGraph = PointsGraph.create(_points, knot_2);
         POINTS_GRAPH_FRAME.getContentPane().removeAll();
