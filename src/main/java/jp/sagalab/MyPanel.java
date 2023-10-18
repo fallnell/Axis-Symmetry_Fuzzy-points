@@ -177,6 +177,11 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         int num2 = max((int) ceil(m_sc.range().length() / 1e-2), 2);
         Point[] points01 = m_sc.evaluateAll(num2, ParametricEvaluable.EvaluationType.TIME);
 
+//        System.out.println("points01");
+//        for(int i=0; i<points01.length-1; i++) {
+//            System.out.println(points01[i]);
+//        }
+
         //sc_cp_disListに距離入れてく（sc_cp)
         List<Double> sc_ep_disList = new ArrayList<>();
         double dis3 = 0.0;
@@ -192,7 +197,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 //            System.out.println(sc_ep_disList.get(i));     //表示
         }
 
-        System.out.println("制御点の個数" + m_sc.controlPoints().length);
+//        System.out.println("制御点の個数" + m_sc.controlPoints().length);
 
         //グラフ作成1（制御点x, 評価点x  -弧長l）
         double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
@@ -206,7 +211,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             epx_l_graph[i][1] = points01[i].x();
         }
         double[][] epx_l_graph_s = new double[points.length][2];
-        for(int i=0; i<points.length-1; i++){
+        for(int i=0; i<points.length; i++){
             epx_l_graph_s[i][0] = disList.get(i);
             epx_l_graph_s[i][1] = points[i].x();
         }
@@ -239,7 +244,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             epy_l_graph[i][1] = points01[i].y();
         }
         double[][] epy_l_graph_s = new double[points.length][2];
-        for(int i=0; i<points.length-1; i++){
+        for(int i=0; i<points.length; i++){
             epy_l_graph_s[i][0] = disList.get(i);
             epy_l_graph_s[i][1] = points[i].y();
         }
@@ -382,6 +387,11 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             int num = max((int) ceil(splineCurve.range().length() / 1e-2), 2);
             //points: スプライン曲線を等時間間隔でnum点で評価した点列
             Point[] points = splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
+
+//            System.out.println("points");
+//            for(int i=0; i<points.length-1; i++) {
+//                System.out.println(points[i]);
+//            }
 
 //            // ファジネスを表示
 //            for (Point p : points) {
