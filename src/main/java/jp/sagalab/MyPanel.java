@@ -1,6 +1,8 @@
 package jp.sagalab;
 
 import com.panayotis.gnuplot.JavaPlot;
+import com.panayotis.gnuplot.plot.AbstractPlot;
+import com.panayotis.gnuplot.plot.Plot;
 import jp.sagalab.graph.PointsGraph;
 import jp.sagalab.jflib.FSCITask;
 import jp.sagalab.jflib.parameter.FSCIParameter;
@@ -172,27 +174,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 //            System.out.println(sc_cp_disList.get(i));     //表示
         }
 
-        //グラフ作成1（制御点x-弧長l）
-        double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
-        for(int i=0; i<m_sc.controlPoints().length-1; i++){
-            cpx_l_graph[i][0] = sc_cp_disList.get(i);
-            cpx_l_graph[i][1] = sc_cp[i].x();
-        }
-        JavaPlot javaPlot = new JavaPlot();
-        javaPlot.addPlot(cpx_l_graph);
-        javaPlot.plot();
-
-        //グラフ作成2(制御点y-弧長l)
-        double[][] cpy_l_graph = new double[m_sc.controlPoints().length][2];
-        for(int i=0; i<m_sc.controlPoints().length-1; i++){
-            cpy_l_graph[i][0] = sc_cp_disList.get(i);
-            cpy_l_graph[i][1] = sc_cp[i].y();
-        }
-        JavaPlot javaPlot2 = new JavaPlot();
-        javaPlot2.addPlot(cpy_l_graph);
-        javaPlot2.plot();
-
-
         int num2 = max((int) ceil(m_sc.range().length() / 1e-2), 2);
         Point[] points01 = m_sc.evaluateAll(num2, ParametricEvaluable.EvaluationType.TIME);
 
@@ -211,25 +192,72 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 //            System.out.println(sc_ep_disList.get(i));     //表示
         }
 
-        //グラフ作成3（評価点x-弧長l）
+        System.out.println("制御点の個数" + m_sc.controlPoints().length);
+
+        //グラフ作成1（制御点x, 評価点x  -弧長l）
+        double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
+        for(int i=0; i<m_sc.controlPoints().length; i++){
+            cpx_l_graph[i][0] = knot_2[i];
+            cpx_l_graph[i][1] = sc_cp[i].x();
+        }
         double[][] epx_l_graph = new double[points01.length][2];
         for(int i=0; i<points01.length-1; i++){
-            epx_l_graph[i][0] = sc_ep_disList.get(i);
+            epx_l_graph[i][0] = points01[i].time();
             epx_l_graph[i][1] = points01[i].x();
         }
-        JavaPlot javaPlot3 = new JavaPlot();
-        javaPlot3.addPlot(epx_l_graph);
-        javaPlot3.plot();
+        double[][] epx_l_graph_s = new double[points.length][2];
+        for(int i=0; i<points.length-1; i++){
+            epx_l_graph_s[i][0] = disList.get(i);
+            epx_l_graph_s[i][1] = points[i].x();
+        }
 
-        //グラフ作成4（評価点y-弧長l）
+        JavaPlot javaPlot = new JavaPlot();
+        javaPlot.addPlot(cpx_l_graph);
+        javaPlot.addPlot(epx_l_graph);
+        javaPlot.addPlot(epx_l_graph_s);
+        AbstractPlot plot = (AbstractPlot) javaPlot.getPlots().get(0);
+        plot.setTitle("cp");
+        AbstractPlot plot2 = (AbstractPlot) javaPlot.getPlots().get(1);
+        plot2.setTitle("ep");
+        AbstractPlot plot3 = (AbstractPlot) javaPlot.getPlots().get(2);
+        plot3.setTitle("ep_s");
+        javaPlot.setTitle("x");
+        javaPlot.set("xlabel", "'arc length'");
+        javaPlot.set("grid", "");
+        javaPlot.set("key", "right outside");
+        javaPlot.plot();
+
+        //グラフ作成2(制御点y, 評価点y  -弧長l)
+        double[][] cpy_l_graph = new double[m_sc.controlPoints().length][2];
+        for(int i=0; i<m_sc.controlPoints().length; i++){
+            cpy_l_graph[i][0] = knot_2[i];
+            cpy_l_graph[i][1] = sc_cp[i].y();
+        }
         double[][] epy_l_graph = new double[points01.length][2];
         for(int i=0; i<points01.length-1; i++){
-            epy_l_graph[i][0] = sc_ep_disList.get(i);
+            epy_l_graph[i][0] = points01[i].time();
             epy_l_graph[i][1] = points01[i].y();
         }
-        JavaPlot javaPlot4 = new JavaPlot();
-        javaPlot4.addPlot(epy_l_graph);
-        javaPlot4.plot();
+        double[][] epy_l_graph_s = new double[points.length][2];
+        for(int i=0; i<points.length-1; i++){
+            epy_l_graph_s[i][0] = disList.get(i);
+            epy_l_graph_s[i][1] = points[i].y();
+        }
+        JavaPlot javaPlot2 = new JavaPlot();
+        javaPlot2.addPlot(cpy_l_graph);
+        javaPlot2.addPlot(epy_l_graph);
+        javaPlot2.addPlot(epy_l_graph_s);
+        AbstractPlot plot4 = (AbstractPlot) javaPlot2.getPlots().get(0);
+        plot4.setTitle("cp");
+        AbstractPlot plot5 = (AbstractPlot) javaPlot2.getPlots().get(1);
+        plot5.setTitle("ep");
+        AbstractPlot plot6 = (AbstractPlot) javaPlot2.getPlots().get(2);
+        plot6.setTitle("ep_s");
+        javaPlot2.setTitle("y");
+        javaPlot2.set("xlabel", "'arc length'");
+        javaPlot2.set("grid", "");
+        javaPlot2.set("key", "right outside");
+        javaPlot2.plot();
 
     }
 
