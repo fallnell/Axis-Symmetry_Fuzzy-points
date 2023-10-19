@@ -61,7 +61,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //disListに距離入れてく（points), 全長disList.get(points.length-1)
         List<Double> disList = new ArrayList<>();
         double dis = 0.0;
-//        System.out.println("disList");        //表示
         for (int i=0; i<points.length; i++){
             if (i == 0){
                 disList.add(0.0);
@@ -70,7 +69,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
                 dis += distance(points[i-1].x(), points[i].x(), points[i-1].y(), points[i].y());
                 disList.add(dis);
             }
-//            System.out.println(disList.get(i));     //表示
         }
 
 
@@ -81,7 +79,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         //disListのi番目のx, y, 距離をnormalizedPointsにsetする
         //normalizedPointsの中身は(x, y, 距離)
-        for (int i=0; i<points.length-1; i++){
+        for (int i=0; i<points.length; i++){
             normalizedPoints.set(i, Point.createXYT(normalizedPoints.get(i).x(), normalizedPoints.get(i).y(), disList.get(i)));
         }
 
@@ -120,8 +118,15 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             kotyoList.add(disList.get(points.length-1) + Le);
         }
         else {
-            kotyoList.add(disList.get(points.length-1));
+            kotyoList.add(disList.get(points.length-1)+0.000001);
         }
+
+//        //disListの表示
+//        System.out.println("disList: ");
+//        for(int i=0; i<disList.size(); i++) {
+//            System.out.println(disList.get(i));
+//        }
+//        System.out.println("disListの最後: " + disList.get(points.length-1));
 
         // リストを配列に変換する.
         Point[] points2 = normalizedPoints.toArray(new Point[0]);
@@ -202,7 +207,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //グラフ作成1（制御点x, 評価点x  -弧長l）
         double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
         for(int i=0; i<m_sc.controlPoints().length; i++){
-            cpx_l_graph[i][0] = knot_2[i];
+            cpx_l_graph[i][0] = knot_2[i+1];
             cpx_l_graph[i][1] = sc_cp[i].x();
         }
         double[][] epx_l_graph = new double[points01.length][2];
@@ -235,7 +240,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //グラフ作成2(制御点y, 評価点y  -弧長l)
         double[][] cpy_l_graph = new double[m_sc.controlPoints().length][2];
         for(int i=0; i<m_sc.controlPoints().length; i++){
-            cpy_l_graph[i][0] = knot_2[i];
+            cpy_l_graph[i][0] = knot_2[i+1];
             cpy_l_graph[i][1] = sc_cp[i].y();
         }
         double[][] epy_l_graph = new double[points01.length][2];
