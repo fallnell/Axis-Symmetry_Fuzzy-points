@@ -9,6 +9,8 @@ import jp.sagalab.jftk.curve.SplineCurve;
 
 import java.util.Arrays;
 
+import static java.lang.Math.ceil;
+
 /**
  * スプライン曲線補間を行うためのクラスです。
  *
@@ -272,7 +274,7 @@ public final class SplineCurveInterpolator {
         double[][] elements = new double[_points.length][];
         for (int i = 0; i < _points.length; ++i) {
             Point p = _points[i];
-            elements[i] = new double[]{p.x(), p.y()};
+            elements[i] = new double[]{p.x(), p.y(), p.fuzziness()};
         }
 
         Matrix result = LeastSquares.solve(_mat, Matrix.create(elements));
@@ -280,7 +282,8 @@ public final class SplineCurveInterpolator {
         // 制御点列の構成
         Point[] controlPoints = new Point[result.rowSize()];
         for (int i = 0; i < controlPoints.length; ++i) {
-            controlPoints[i] = Point.createXY(result.get(i, 0), result.get(i, 1));
+            double num = Math.max(result.get(i,2), 10e-10);
+            controlPoints[i] = Point.createXYF(result.get(i, 0), result.get(i, 1), num);
         }
 
         return controlPoints;

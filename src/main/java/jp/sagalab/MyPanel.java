@@ -22,8 +22,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.ceil;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 
 public class MyPanel extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -32,6 +31,8 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         m_splineCurve = sc;
         // 赤の点。前側の点（nullの場合がある）
         m_begin = begin;
+
+
         // 青の点。後ろ側の点（nullの場合がある）
         m_end = end;
 
@@ -71,6 +72,12 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             }
         }
 
+//        //disListの表示
+//        System.out.println("disList: ");
+//        for(int i=0; i<disList.size(); i++) {
+//            System.out.println(disList.get(i));
+//        }
+
 
         // 弧長パラメータを0から始まるようにシフトしておく.
         Range lRange = Range.create(0.0, disList.get(points.length-1));
@@ -78,9 +85,9 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         List<Point> normalizedPoints = normalizePoints(lRange, points);
 
         //disListのi番目のx, y, 距離をnormalizedPointsにsetする
-        //normalizedPointsの中身は(x, y, 距離)
+        //normalizedPointsの中身は(x, y, 距離, f)
         for (int i=0; i<points.length; i++){
-            normalizedPoints.set(i, Point.createXYT(normalizedPoints.get(i).x(), normalizedPoints.get(i).y(), disList.get(i)));
+            normalizedPoints.set(i, Point.createXYTF(normalizedPoints.get(i).x(), normalizedPoints.get(i).y(), disList.get(i), points[i].fuzziness()));
         }
 
         //次数
@@ -92,7 +99,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         if(m_begin != null) {
             //m_beginから入力の1点目の距離Ls
             double Ls = distance(points[0].x(), m_begin.x(), points[0].y(), m_begin.y());
-            normalizedPoints.add(0, Point.createXYT(m_begin.x(), m_begin.y(), -Ls));
+            normalizedPoints.add(0, Point.createXYTF(m_begin.x(), m_begin.y(), -Ls, 0));
             kotyoList.add(-Ls);
         }
         for(int i=0; i<sc_knots.size(); i++){
@@ -114,27 +121,21 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         if(m_end != null) {
             //m_endから入力点の最後の点の距離Le
             double Le = distance(points[points.length-1].x(), m_end.x(), points[points.length-1].y(), m_end.y());
-            normalizedPoints.add(Point.createXYT(m_end.x(), m_end.y(), disList.get(points.length-1)+Le-0.000001));
+            normalizedPoints.add(Point.createXYTF(m_end.x(), m_end.y(), disList.get(points.length-1)+Le-0.000001, 0));
             kotyoList.add(disList.get(points.length-1) + Le);
         }
         else {
             kotyoList.add(disList.get(points.length-1)+0.000001);
         }
 
-//        //disListの表示
-//        System.out.println("disList: ");
-//        for(int i=0; i<disList.size(); i++) {
-//            System.out.println(disList.get(i));
-//        }
-//        System.out.println("disListの最後: " + disList.get(points.length-1));
 
         // リストを配列に変換する.
         Point[] points2 = normalizedPoints.toArray(new Point[0]);
-//        //points2の表示
-//        System.out.println("points2(x, y, z, 距離, f),   " + "長さ: " + points2.length);
-//        for(int i=0; i<points.length; i++){
-//            System.out.println(points2[i]);
-//        }
+        //points2の表示
+        System.out.println("points2(x, y, z=0, 距離, f),   " + "長さ: " + points2.length);
+        for(int i=0; i<points.length; i++){
+            System.out.println(points2[i]);
+        }
 
         //knot_2はkotyoListと付加節点
         double[] knot_2;
@@ -159,115 +160,150 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         m_sc = splineCurve;
 
-
-        /**グラフ作成　-------------------------------------------------------------------------------------------------*/
-
-        Point[] sc_cp = m_sc.controlPoints();
-
-        //sc_cp_disListに距離入れてく（sc_cp)
-        List<Double> sc_cp_disList = new ArrayList<>();
-        double dis2 = 0.0;
-//        System.out.println("sc_cp_disList");        //表示
-        for (int i=0; i<sc_cp.length; i++){
-            if (i == 0){
-                sc_cp_disList.add(0.0);
-            }
-            else {
-                dis2 += distance(sc_cp[i-1].x(), sc_cp[i].x(), sc_cp[i-1].y(), sc_cp[i].y());
-                sc_cp_disList.add(dis2);
-            }
-//            System.out.println(sc_cp_disList.get(i));     //表示
+        //制御点の表示
+        System.out.println("m_splineCurve.controlPoints");
+        for(int i=0; i<m_splineCurve.controlPoints().length; i++){
+            System.out.println(m_splineCurve.controlPoints()[i]);
+        }
+        System.out.println("m_sc.controlPoints");
+        for(int i=0; i<m_sc.controlPoints().length; i++){
+            System.out.println(m_sc.controlPoints()[i]);
         }
 
-        int num2 = max((int) ceil(m_sc.range().length() / 1e-2), 2);
-        Point[] points01 = m_sc.evaluateAll(num2, ParametricEvaluable.EvaluationType.TIME);
-
-//        System.out.println("points01");
-//        for(int i=0; i<points01.length-1; i++) {
-//            System.out.println(points01[i]);
+//        /**グラフ作成　-------------------------------------------------------------------------------------------------*/
+//
+//        Point[] sc_cp = m_sc.controlPoints();
+//
+//        //sc_cp_disListに距離入れてく（sc_cp)
+//        List<Double> sc_cp_disList = new ArrayList<>();
+//        double dis2 = 0.0;
+////        System.out.println("sc_cp_disList");        //表示
+//        for (int i=0; i<sc_cp.length; i++){
+//            if (i == 0){
+//                sc_cp_disList.add(0.0);
+//            }
+//            else {
+//                dis2 += distance(sc_cp[i-1].x(), sc_cp[i].x(), sc_cp[i-1].y(), sc_cp[i].y());
+//                sc_cp_disList.add(dis2);
+//            }
+////            System.out.println(sc_cp_disList.get(i));     //表示
 //        }
-
-        //sc_cp_disListに距離入れてく（sc_cp)
-        List<Double> sc_ep_disList = new ArrayList<>();
-        double dis3 = 0.0;
-//        System.out.println("sc_ep_disList");        //表示
-        for (int i=0; i<points01.length; i++){
-            if (i == 0){
-                sc_ep_disList.add(0.0);
-            }
-            else {
-                dis3 += distance(points01[i-1].x(), points01[i].x(), points01[i-1].y(), points01[i].y());
-                sc_ep_disList.add(dis3);
-            }
-//            System.out.println(sc_ep_disList.get(i));     //表示
-        }
-
-//        System.out.println("制御点の個数" + m_sc.controlPoints().length);
-
-        //グラフ作成1（制御点x, 評価点x  -弧長l）
-        double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
-        for(int i=0; i<m_sc.controlPoints().length; i++){
-            cpx_l_graph[i][0] = knot_2[i+1];
-            cpx_l_graph[i][1] = sc_cp[i].x();
-        }
-        double[][] epx_l_graph = new double[points01.length][2];
-        for(int i=0; i<points01.length-1; i++){
-            epx_l_graph[i][0] = points01[i].time();
-            epx_l_graph[i][1] = points01[i].x();
-        }
-        double[][] epx_l_graph_s = new double[points.length][2];
-        for(int i=0; i<points.length; i++){
-            epx_l_graph_s[i][0] = disList.get(i);
-            epx_l_graph_s[i][1] = points[i].x();
-        }
-
-        JavaPlot javaPlot = new JavaPlot();
-        javaPlot.addPlot(cpx_l_graph);
-        javaPlot.addPlot(epx_l_graph);
-        javaPlot.addPlot(epx_l_graph_s);
-        AbstractPlot plot = (AbstractPlot) javaPlot.getPlots().get(0);
-        plot.setTitle("cp");
-        AbstractPlot plot2 = (AbstractPlot) javaPlot.getPlots().get(1);
-        plot2.setTitle("ep");
-        AbstractPlot plot3 = (AbstractPlot) javaPlot.getPlots().get(2);
-        plot3.setTitle("ep_s");
-        javaPlot.setTitle("x");
-        javaPlot.set("xlabel", "'arc length'");
-        javaPlot.set("grid", "");
-        javaPlot.set("key", "right outside");
-        javaPlot.plot();
-
-        //グラフ作成2(制御点y, 評価点y  -弧長l)
-        double[][] cpy_l_graph = new double[m_sc.controlPoints().length][2];
-        for(int i=0; i<m_sc.controlPoints().length; i++){
-            cpy_l_graph[i][0] = knot_2[i+1];
-            cpy_l_graph[i][1] = sc_cp[i].y();
-        }
-        double[][] epy_l_graph = new double[points01.length][2];
-        for(int i=0; i<points01.length-1; i++){
-            epy_l_graph[i][0] = points01[i].time();
-            epy_l_graph[i][1] = points01[i].y();
-        }
-        double[][] epy_l_graph_s = new double[points.length][2];
-        for(int i=0; i<points.length; i++){
-            epy_l_graph_s[i][0] = disList.get(i);
-            epy_l_graph_s[i][1] = points[i].y();
-        }
-        JavaPlot javaPlot2 = new JavaPlot();
-        javaPlot2.addPlot(cpy_l_graph);
-        javaPlot2.addPlot(epy_l_graph);
-        javaPlot2.addPlot(epy_l_graph_s);
-        AbstractPlot plot4 = (AbstractPlot) javaPlot2.getPlots().get(0);
-        plot4.setTitle("cp");
-        AbstractPlot plot5 = (AbstractPlot) javaPlot2.getPlots().get(1);
-        plot5.setTitle("ep");
-        AbstractPlot plot6 = (AbstractPlot) javaPlot2.getPlots().get(2);
-        plot6.setTitle("ep_s");
-        javaPlot2.setTitle("y");
-        javaPlot2.set("xlabel", "'arc length'");
-        javaPlot2.set("grid", "");
-        javaPlot2.set("key", "right outside");
-        javaPlot2.plot();
+//
+//        int num2 = max((int) ceil(m_sc.range().length() / 1e-2), 2);
+//        Point[] points01 = m_sc.evaluateAll(num2, ParametricEvaluable.EvaluationType.TIME);
+//
+////        System.out.println("points01");
+////        for(int i=0; i<points01.length-1; i++) {
+////            System.out.println(points01[i]);
+////        }
+//
+//        //sc_cp_disListに距離入れてく（sc_cp)
+//        List<Double> sc_ep_disList = new ArrayList<>();
+//        double dis3 = 0.0;
+////        System.out.println("sc_ep_disList");        //表示
+//        for (int i=0; i<points01.length; i++){
+//            if (i == 0){
+//                sc_ep_disList.add(0.0);
+//            }
+//            else {
+//                dis3 += distance(points01[i-1].x(), points01[i].x(), points01[i-1].y(), points01[i].y());
+//                sc_ep_disList.add(dis3);
+//            }
+////            System.out.println(sc_ep_disList.get(i));     //表示
+//        }
+//
+////        System.out.println("制御点の個数" + m_sc.controlPoints().length);
+//
+//        //xグラフ（制御点x, 評価点x  -弧長l）
+//        double[][] cpx_l_graph = new double[m_sc.controlPoints().length][2];
+//        for(int i=0; i<m_sc.controlPoints().length; i++){
+//            cpx_l_graph[i][0] = knot_2[i+1];
+//            cpx_l_graph[i][1] = sc_cp[i].x();
+//        }
+//        double[][] epx_l_graph = new double[points01.length][2];
+//        for(int i=0; i<points01.length-1; i++){
+//            epx_l_graph[i][0] = points01[i].time();
+//            epx_l_graph[i][1] = points01[i].x();
+//        }
+//        double[][] epx_l_graph_s = new double[points.length][2];
+//        for(int i=0; i<points.length; i++){
+//            epx_l_graph_s[i][0] = disList.get(i);
+//            epx_l_graph_s[i][1] = points[i].x();
+//        }
+//
+//        JavaPlot javaPlot = new JavaPlot();
+//        javaPlot.addPlot(cpx_l_graph);
+//        javaPlot.addPlot(epx_l_graph);
+//        javaPlot.addPlot(epx_l_graph_s);
+//        AbstractPlot plot = (AbstractPlot) javaPlot.getPlots().get(0);
+//        plot.setTitle("cp");
+//        AbstractPlot plot2 = (AbstractPlot) javaPlot.getPlots().get(1);
+//        plot2.setTitle("ep");
+//        AbstractPlot plot3 = (AbstractPlot) javaPlot.getPlots().get(2);
+//        plot3.setTitle("ep_s");
+//        javaPlot.setTitle("x");
+//        javaPlot.set("xlabel", "'arc length'");
+//        javaPlot.set("grid", "");
+//        javaPlot.set("key", "right outside");
+//        javaPlot.plot();
+//
+//        //yグラフ(制御点y, 評価点y  -弧長l)
+//        double[][] cpy_l_graph = new double[m_sc.controlPoints().length][2];
+//        for(int i=0; i<m_sc.controlPoints().length; i++){
+//            cpy_l_graph[i][0] = knot_2[i+1];
+//            cpy_l_graph[i][1] = sc_cp[i].y();
+//        }
+//        double[][] epy_l_graph = new double[points01.length][2];
+//        for(int i=0; i<points01.length-1; i++){
+//            epy_l_graph[i][0] = points01[i].time();
+//            epy_l_graph[i][1] = points01[i].y();
+//        }
+//        double[][] epy_l_graph_s = new double[points.length][2];
+//        for(int i=0; i<points.length; i++){
+//            epy_l_graph_s[i][0] = disList.get(i);
+//            epy_l_graph_s[i][1] = points[i].y();
+//        }
+//        JavaPlot javaPlot2 = new JavaPlot();
+//        javaPlot2.addPlot(cpy_l_graph);
+//        javaPlot2.addPlot(epy_l_graph);
+//        javaPlot2.addPlot(epy_l_graph_s);
+//        AbstractPlot plot4 = (AbstractPlot) javaPlot2.getPlots().get(0);
+//        plot4.setTitle("cp");
+//        AbstractPlot plot5 = (AbstractPlot) javaPlot2.getPlots().get(1);
+//        plot5.setTitle("ep");
+//        AbstractPlot plot6 = (AbstractPlot) javaPlot2.getPlots().get(2);
+//        plot6.setTitle("ep_s");
+//        javaPlot2.setTitle("y");
+//        javaPlot2.set("xlabel", "'arc length'");
+//        javaPlot2.set("grid", "");
+//        javaPlot2.set("key", "right outside");
+//        javaPlot2.plot();
+//
+//        //t-lグラフ
+//        double[][] t_l_graph = new double[points.length][2];
+//        for(int i=0; i<points.length; i++){
+//            t_l_graph[i][0] = points[i].time();
+//            t_l_graph[i][1] = disList.get(i);
+//        }
+//        //knot_2グラフ
+//        double[][] knot_2_graph = new double[knot_2.length][2];
+//        for (int i=0; i<knot_2.length; i++) {
+//            knot_2_graph[i][0] = sc_knots.get(i+3);
+//            knot_2_graph[i][1] = knot_2[i];
+//        }
+//
+//        JavaPlot javaPlot3 = new JavaPlot();
+//        javaPlot3.addPlot(t_l_graph);
+//        javaPlot3.addPlot(knot_2_graph);
+//        AbstractPlot plot7 = (AbstractPlot) javaPlot3.getPlots().get(0);
+//        plot7.setTitle("( t , l )");
+//        AbstractPlot plot8 = (AbstractPlot) javaPlot3.getPlots().get(1);
+//        plot8.setTitle("knot");
+//        javaPlot3.set("xlabel", "'time'");
+//        javaPlot3.set("ylabel", "'length'");
+//        javaPlot3.set("grid", "");
+//        javaPlot3.set("key", "right outside");
+//        javaPlot3.plot();
 
     }
 
@@ -343,7 +379,17 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             drawSplineCurve(_g, m_sc);
         }
 
-        //m_scの制御点を表示
+        //m_scのファジネス表示
+        if(m_sc != null){
+            int num2 = 100;
+            //int num2 = max((int) ceil(m_sc.range().length() / 1e-2), 2);
+            Point[] points01 = m_sc.evaluateAll(num2, ParametricEvaluable.EvaluationType.TIME);
+            for (Point p : points01) {
+                _g.drawOval((int) (p.x() - p.fuzziness()), (int) (p.y() - p.fuzziness()), (int) (2 * p.fuzziness()), (int) (2 * p.fuzziness()));
+            }
+        }
+
+        //m_scの制御点表示
         _g.setColor(Color.CYAN);
         if(m_sc != null) {
             for (Point p : m_sc.controlPoints()) {
@@ -392,12 +438,6 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             int num = max((int) ceil(splineCurve.range().length() / 1e-2), 2);
             //points: スプライン曲線を等時間間隔でnum点で評価した点列
             Point[] points = splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
-
-//            System.out.println("points");
-//            for(int i=0; i<points.length-1; i++) {
-//                System.out.println(points[i]);
-//            }
-
 //            // ファジネスを表示
 //            for (Point p : points) {
 //                _g.drawOval((int) (p.x() - p.fuzziness()), (int) (p.y() - p.fuzziness()), (int) (2 * p.fuzziness()), (int) (2 * p.fuzziness()));
