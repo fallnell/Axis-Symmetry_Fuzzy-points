@@ -31,13 +31,10 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         m_splineCurve = sc;
         // 赤の点。前側の点（nullの場合がある）
         m_begin = begin;
-
-
         // 青の点。後ろ側の点（nullの場合がある）
         m_end = end;
 
-        System.out.println(m_splineCurve);        //cp:(x, y, z, t, f), knots, degree, range[s,e)
-
+//        System.out.println(m_splineCurve);        //cp:(x, y, z, t, f), knots, degree, range[s,e)
 
         // ↓↓↓ここに何か処理を入れよう↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
@@ -45,19 +42,19 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         for(int i=0; i<m_splineCurve.knots().length; i++){
             sc_knots.add(m_splineCurve.knots()[i]);
         }
-        //sc_knotsの表示
-        System.out.println(sc_knots);
-        System.out.println("sc_knotsの大きさ" + sc_knots.size());
+//        //sc_knotsの表示
+//        System.out.println(sc_knots);
+//        System.out.println("sc_knotsの大きさ" + sc_knots.size());
 
         //1点あっても線にならないから、2より大きいのを取るためにmaxで2より大きくしてる
         int num = max((int) ceil(m_splineCurve.range().length() / 1e-2), 2);
         //points: スプライン曲線を等時間間隔でnum点で評価した点列
         Point[] points = m_splineCurve.evaluateAll(num, ParametricEvaluable.EvaluationType.TIME);
-        //pointsの表示, 入力点列(x, y, z, 時間, f)
-        System.out.println("points(x, y, z, 時間, f),   " + "長さ: " + points.length);
-        for(int i=0; i<=points.length-1; i++){
-            System.out.println(points[i]);
-        }
+//        //pointsの表示, 入力点列(x, y, z, 時間, f)
+//        System.out.println("points(x, y, z, 時間, f),   " + "長さ: " + points.length);
+//        for(int i=0; i<=points.length-1; i++){
+//            System.out.println(points[i]);
+//        }
 
         //disListに距離入れてく（points), 全長disList.get(points.length-1)
         List<Double> disList = new ArrayList<>();
@@ -131,7 +128,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
             kotyoList.add(disList.get(points.length-1)+0.000001);
         }
 
-//        System.out.println(sc_knots2);
+//        System.out.println(sc_knots2);       //節点の秒数の表示
 
 
         // リストを配列に変換する.
@@ -175,8 +172,8 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 //            System.out.println(m_sc.controlPoints()[i]);
 //        }
 
-//        /**グラフ作成　-------------------------------------------------------------------------------------------------*/
-//
+        /**グラフ作成　-------------------------------------------------------------------------------------------------*/
+        
 //        Point[] sc_cp = m_sc.controlPoints();
 //
 //        //sc_cp_disListに距離入れてく（sc_cp)
@@ -284,31 +281,100 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 //        javaPlot2.set("key", "right outside");
 //        javaPlot2.plot();
 //
-        //t-lグラフ
-        double[][] t_l_graph = new double[points.length][2];
-        for(int i=0; i<points.length; i++){
-            t_l_graph[i][0] = points[i].time();
-            t_l_graph[i][1] = disList.get(i);
-        }
-        //knot_2グラフ
-        double[][] knot_2_graph = new double[sc_knots2.size()][2];
-        for (int i=0; i<sc_knots2.size(); i++) {
-            knot_2_graph[i][0] = sc_knots2.get(i);
-            knot_2_graph[i][1] = knot_2[i+3];
+//        //t-lグラフ
+//        double[][] t_l_graph = new double[points.length][2];
+//        for(int i=0; i<points.length; i++){
+//            t_l_graph[i][0] = points[i].time();
+//            t_l_graph[i][1] = disList.get(i);
+//        }
+//        //knot_2グラフ
+//        double[][] knot_2_graph = new double[sc_knots2.size()][2];
+//        for (int i=0; i<sc_knots2.size(); i++) {
+//            knot_2_graph[i][0] = sc_knots2.get(i);
+//            knot_2_graph[i][1] = knot_2[i+3];
+//        }
+//
+//        JavaPlot javaPlot3 = new JavaPlot();
+//        javaPlot3.addPlot(t_l_graph);
+//        javaPlot3.addPlot(knot_2_graph);
+//        AbstractPlot plot7 = (AbstractPlot) javaPlot3.getPlots().get(0);
+//        plot7.setTitle("( t , l )");
+//        AbstractPlot plot8 = (AbstractPlot) javaPlot3.getPlots().get(1);
+//        plot8.setTitle("knot");
+//        javaPlot3.set("xlabel", "'time'");
+//        javaPlot3.set("ylabel", "'length'");
+//        javaPlot3.set("grid", "");
+//        javaPlot3.set("key", "right outside");
+//        javaPlot3.plot();
+
+        //ファジネスグラフ(l-f)
+        int num4 = 100;
+        Point[] points02 = m_sc.evaluateAll(num4, ParametricEvaluable.EvaluationType.TIME);
+
+        List<Double> kotyoList_100 = new ArrayList<>();
+        kotyoList_100.add(kotyoList.get(0));
+        for(int i=1; i<=100; i++){
+            double a = ((kotyoList.get(kotyoList.size()-1) * i)) / 100;
+            kotyoList_100.add(a);
         }
 
-        JavaPlot javaPlot3 = new JavaPlot();
-        javaPlot3.addPlot(t_l_graph);
-        javaPlot3.addPlot(knot_2_graph);
-        AbstractPlot plot7 = (AbstractPlot) javaPlot3.getPlots().get(0);
-        plot7.setTitle("( t , l )");
-        AbstractPlot plot8 = (AbstractPlot) javaPlot3.getPlots().get(1);
-        plot8.setTitle("knot");
-        javaPlot3.set("xlabel", "'time'");
-        javaPlot3.set("ylabel", "'length'");
-        javaPlot3.set("grid", "");
-        javaPlot3.set("key", "right outside");
-        javaPlot3.plot();
+//        //points.fuzinessの表示
+//        System.out.println("points.fuziness: ");
+//        for(int i=0; i<points.length; i++){
+//            System.out.println(points[i].fuzziness());
+//        }
+//        //disListの表示
+//        System.out.println("disList: ");
+//        for(int i=0; i<disList.size(); i++) {
+//            System.out.println(disList.get(i));
+//        }
+//        //points02.fuzinessの表示
+//        System.out.println("points02.fuziness: ");
+//        for(int i=0; i<points02.length; i++){
+//            System.out.println(points02[i].fuzziness());
+//        }
+//        //kotyoList_100の表示
+//        System.out.println("kotyoList_100");        //表示
+//        for(int i=0; i<kotyoList_100.size(); i++){
+//            System.out.println(kotyoList_100.get(i));     //表示
+//        }
+
+
+        double[][] b_fuziness = new double[points.length][2];
+        for(int i=0; i<points.length; i++){
+            b_fuziness[i][0] = disList.get(i);
+            b_fuziness[i][1] = points[i].fuzziness();
+        }
+        double[][] a_fuziness = new double[points02.length][2];
+        for(int i=0; i<points02.length; i++){
+            a_fuziness[i][0] = kotyoList_100.get(i);
+            a_fuziness[i][1] = points02[i].fuzziness();
+        }
+        double[][] start = new double[1][2];
+        start[0][0] = kotyoList.get(0);
+        start[0][1] = m_begin.fuzziness();
+        double[][] goal = new double[1][2];
+        goal[0][0] = kotyoList.get(kotyoList.size()-1);
+        goal[0][1] = m_end.fuzziness();
+
+        JavaPlot javaPlot4 = new JavaPlot();
+        javaPlot4.addPlot(b_fuziness);
+        javaPlot4.addPlot(a_fuziness);
+        javaPlot4.addPlot(start);
+        javaPlot4.addPlot(goal);
+        AbstractPlot plot9 = (AbstractPlot) javaPlot4.getPlots().get(0);
+        plot9.setTitle("before");
+        AbstractPlot plot10 = (AbstractPlot) javaPlot4.getPlots().get(1);
+        plot10.setTitle("after");
+        AbstractPlot plot11 = (AbstractPlot) javaPlot4.getPlots().get(2);
+        plot11.setTitle("m-begin");
+        AbstractPlot plot12 = (AbstractPlot) javaPlot4.getPlots().get(3);
+        plot12.setTitle("m-end");
+        javaPlot4.set("xlabel", "'length'");
+        javaPlot4.set("ylabel", "'fuziness'");
+        javaPlot4.set("grid", "");
+        javaPlot4.set("key", "right outside");
+        javaPlot4.plot();
 
     }
 
